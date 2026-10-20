@@ -17,6 +17,7 @@
 <main>
 <h1>研究結果</h1>
 <p class="lead">可切換圖表類型與分量表，圖表下方的表格會同步顯示三個分量表的統計數據。</p>
+<p class="hint" id="src"></p>
 
 <section class="card bar">
   <div class="seg" id="seg">
@@ -78,7 +79,7 @@ const SUBS=[
 ];
 const LV=['正常','輕度','中度','重度','極重度'];
 const LVC=['#e3eaf5','#bdd0ea','#8fb0dc','#4f7fc0','#1f3f7a'];
-const D=[
+let D=[
  {lo:10,n:1421,st:{dep:[22.76213934,12.03702045],anx:[18.30119634,10.20656679],str:[22.66502463,10.31082269]},lv:{dep:[252,105,260,247,557],anx:[248,86,235,219,633],str:[346,160,318,344,253]}},
  {lo:20,n:2176,st:{dep:[20.05009191,11.88178438],anx:[15.37178309,9.718905087],str:[20.57077206,10.18683173]},lv:{dep:[506,229,430,359,652],anx:[537,170,439,341,689],str:[675,276,521,434,270]}},
  {lo:30,n:362,st:{dep:[17.44751381,12.59968592],anx:[11.09944751,9.054225669],str:[18.29834254,10.67445484]},lv:{dep:[127,38,55,43,99],anx:[163,33,68,37,61],str:[149,56,55,64,38]}},
@@ -92,7 +93,7 @@ const tc=df=>df<=30?T[df]:1.96+2.4/df;
 const ci=(g,k)=>{const [m,sd]=g.st[k],h=tc(g.n-1)*sd/Math.sqrt(g.n);return [m-h,m+h]};
 const lab=g=>`${g.lo}–${g.lo+9}`;
 const f2=v=>v.toFixed(2);
-const N=D.reduce((a,g)=>a+g.n,0);
+let N=D.reduce((a,g)=>a+g.n,0);
 
 let chart='mean',sel=new Set(['dep','anx','str']),one='dep';
 const $=id=>document.getElementById(id);
@@ -273,7 +274,84 @@ ch.addEventListener('mouseleave',()=>tip.style.display='none');
 ch.addEventListener('focusin',e=>{const el=e.target.closest('.hit');if(!el)return;const r=el.getBoundingClientRect();showTip(tipHtml(el),r.left+r.width/2,r.top)});
 ch.addEventListener('focusout',()=>tip.style.display='none');
 
+// --- sheet loader ---
+const SHEET_ID='10Tjr8Lo3SLDC0klaZnX_5poqy36l6IQPWWgwfFNUyzY',SHEET_TAB='年齡層統計';
+const SHEET_LINK=`<a href="https://docs.google.com/spreadsheets/d/${SHEET_ID}/edit?usp=sharing" target="_blank" rel="noopener">Google Sheets「${SHEET_TAB}」分頁</a>`;
+function setSrc(msg){$('src').innerHTML=`資料來源：${SHEET_LINK}。${msg}`}
+function parseCSV(t){
+  const rows=[];let r=[],f='',q=false;
+  for(let i=0;i<t.length;i++){
+    const c=t[i];
+    if(q){if(c==='"'){if(t[i+1]==='"'){f+='"';i++}else q=false}else f+=c}
+    else if(c==='"')q=true;
+    else if(c===','){r.push(f);f=''}
+    else if(c==='\n'||c==='\r'){if(c==='\r'&&t[i+1]==='\n')i++;r.push(f);rows.push(r);r=[];f=''}
+    else f+=c;
+  }
+  if(f!==''||r.length){r.push(f);rows.push(r)}
+  return rows;
+}
+function buildFromRows(rows){
+  const num=v=>{const x=parseFloat(String(v==null?'':v).replace(/,/g,''));return isNaN(x)?null:x};
+  const T=r=>r.map(c=>(c||'').trim());
+  const hi=rows.findIndex(r=>T(r).includes('人數')&&T(r).includes('憂鬱平均'));
+  if(hi<0)throw new Error('找不到平均數表格的標題列');
+  const h=T(rows[hi]);
+  const col=n=>{const i=h.indexOf(n);if(i<0)throw new Error('缺少欄位「'+n+'」');return i};
+  const iA=h.findIndex(c=>c.startsWith('年齡層'));
+  if(iA<0)throw new Error('缺少「年齡層」欄');
+  const iN=col('人數'),iM={dep:col('憂鬱平均'),anx:col('焦慮平均'),str:col('壓力平均')},iS={dep:col('憂鬱SD'),anx:col('焦慮SD'),str:col('壓力SD')};
+  const stats=new Map();
+  for(let i=hi+1;i<rows.length;i++){
+    const r=rows[i],lo=num(r[iA]);
+    if(lo===null)break;
+    const n=num(r[iN]);
+    if(!n)continue;
+    const st={};
+    for(const k of ['dep','anx','str']){
+      const m=num(r[iM[k]]),sd=num(r[iS[k]]);
+      if(m===null||sd===null)throw new Error(lo+' 歲組缺少平均數或標準差');
+      st[k]=[m,sd];
+    }
+    stats.set(lo,{lo,n,st});
+  }
+  if(!stats.size)throw new Error('平均數表格沒有人數大於 0 的年齡組');
+  const si=rows.findIndex((r,i)=>i>hi&&T(r)[0].startsWith('年齡層')&&T(r).includes('正常')&&T(r).includes('極重度'));
+  if(si<0)throw new Error('找不到嚴重度表格的標題列');
+  const idx=T(rows[si]).map((c,i)=>LV.includes(c)?i:-1).filter(i=>i>=0);
+  if(idx.length!==15)throw new Error('嚴重度表格應有 15 個等級欄（三個分量表各五級）');
+  const lvMap=new Map();
+  for(let i=si+1;i<rows.length;i++){
+    const r=rows[i],lo=num(T(r)[0]);
+    if(lo===null)break;
+    const lv={};
+    ['dep','anx','str'].forEach((k,gi)=>{lv[k]=idx.slice(gi*5,gi*5+5).map(j=>num(r[j])||0)});
+    lvMap.set(lo,lv);
+  }
+  return [...stats.values()].sort((a,b)=>a.lo-b.lo).map(g=>{
+    const lv=lvMap.get(g.lo);
+    if(!lv)throw new Error('嚴重度表格缺少 '+g.lo+' 歲組');
+    for(const k of ['dep','anx','str'])if(lv[k].reduce((a,b)=>a+b,0)!==g.n)throw new Error(g.lo+' 歲組的等級人數加總不等於人數');
+    return {...g,lv};
+  });
+}
+async function loadSheet(){
+  setSrc('讀取中…');
+  try{
+    const r=await fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_TAB)}`);
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    D=buildFromRows(parseCSV(await r.text()));
+    N=D.reduce((a,g)=>a+g.n,0);
+    setSrc('已即時讀取最新資料。');
+    update();
+  }catch(e){
+    setSrc('目前無法讀取（'+e.message+'），顯示的是內建的資料副本。');
+  }
+}
+// --- end sheet loader ---
+
 update();
+loadSheet();
 </script>
 </body>
 </html>
