@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>研究結果｜年齡與憂鬱、焦慮、壓力的關係</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="site">
+  <div class="site-in">
+    <a class="brand" href="index.html">DASS 研究專題</a>
+    <nav aria-label="主要導覽"><a href="index.html">首頁</a><a href="results.html" aria-current="page">研究結果</a><a href="ask.html">問答</a><a href="about.html">關於研究</a></nav>
+    <button type="button" id="themeBtn" aria-pressed="false">夜間模式</button>
+  </div>
+</header>
+<main>
+<h1>研究結果</h1>
+<p class="lead">可切換圖表類型與分量表，圖表下方的表格會同步顯示三個分量表的統計數據。</p>
+
+<section class="card bar">
+  <div class="seg" id="seg">
+    <button data-c="mean" aria-pressed="true">年齡對各分量的平均</button>
+    <button data-c="sev" aria-pressed="false">各年齡層嚴重度分布</button>
+  </div>
+  <div>
+    <div class="lg">分量表　<span class="hint" id="hint"></span></div>
+    <div class="tg" id="subs" role="group" aria-label="分量表"></div>
+  </div>
+</section>
+
+<section class="card">
+  <h2 id="ctitle"></h2>
+  <div id="chart"></div>
+</section>
+
+<section class="card tbl" id="table"></section>
+
+<section class="card notes">
+  <h2>註解</h2>
+  <div class="cols">
+    <div>
+      <h3>名詞說明</h3>
+      <ul>
+        <li><b>平均數</b>：該年齡組所有人的分量表總分（0–42）相加後除以人數，代表這一組的整體水準。</li>
+        <li><b>標準差</b>：每個人的分數與平均數之間的一般差距。標準差越大，同一組內每個人的分數差異越大。</li>
+        <li><b>95%信賴區間</b>：用這份樣本推估該組「真正平均數」可能落在的範圍（圖中的誤差線）。區間越窄，估計越精確；人數越少，區間越寬。</li>
+        <li><b>嚴重度等級</b>：依總分切點分為正常到極重度五級（切點見表格欄位標題），百分比是各年齡層內的比例。</li>
+      </ul>
+    </div>
+    <div class="warn">
+      <h3>注意事項</h3>
+      <ul>
+        <li>資料來自自願填答的線上問卷，並非隨機抽樣，結果不能推論到一般人口。</li>
+        <li>資料為單一時間點，只能比較不同年齡層，不能說明同一個人隨年齡的變化，也不能判斷因果。</li>
+        <li>60–69 歲（25 人）與 70–79 歲（3 人）人數很少，結果僅供參考；70–79 歲的信賴區間超出 0–42，圖中已截斷。</li>
+        <li>比較兩組時，信賴區間有重疊不代表沒有差異，仍需另做統計檢定。</li>
+        <li>0–9 歲與 80 歲以上沒有人，未列出。分數是症狀篩檢指標，不等同臨床診斷。</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+</main>
+<footer class="site-foot">
+  <div class="site-in">
+    <span>組別：第 ＿ 組</span>
+    <span>組員：（請填入組員姓名）</span>
+  </div>
+</footer>
+<div id="tip"></div>
+
+<script>
+const SUBS=[
+ {k:'dep',name:'憂鬱',color:'#2b6cb0',shape:'c',cuts:['0–9','10–13','14–20','21–27','28+']},
+ {k:'anx',name:'焦慮',color:'#c2570c',shape:'s',cuts:['0–7','8–9','10–14','15–19','20+']},
+ {k:'str',name:'壓力',color:'#1f7a6f',shape:'t',cuts:['0–14','15–18','19–25','26–33','34+']}
+];
+const LV=['正常','輕度','中度','重度','極重度'];
+const LVC=['#e3eaf5','#bdd0ea','#8fb0dc','#4f7fc0','#1f3f7a'];
+const D=[
+ {lo:10,n:1421,st:{dep:[22.76213934,12.03702045],anx:[18.30119634,10.20656679],str:[22.66502463,10.31082269]},lv:{dep:[252,105,260,247,557],anx:[248,86,235,219,633],str:[346,160,318,344,253]}},
+ {lo:20,n:2176,st:{dep:[20.05009191,11.88178438],anx:[15.37178309,9.718905087],str:[20.57077206,10.18683173]},lv:{dep:[506,229,430,359,652],anx:[537,170,439,341,689],str:[675,276,521,434,270]}},
+ {lo:30,n:362,st:{dep:[17.44751381,12.59968592],anx:[11.09944751,9.054225669],str:[18.29834254,10.67445484]},lv:{dep:[127,38,55,43,99],anx:[163,33,68,37,61],str:[149,56,55,64,38]}},
+ {lo:40,n:120,st:{dep:[14.74166667,12.31484438],anx:[9.516666667,9.017241499],str:[17.18333333,10.87050078]},lv:{dep:[52,14,19,11,24],anx:[63,12,17,9,19],str:[54,17,18,16,15]}},
+ {lo:50,n:68,st:{dep:[14.23529412,12.18405815],anx:[7.764705882,8.199231211],str:[15.22058824,10.46650035]},lv:{dep:[34,6,11,6,11],anx:[42,5,8,6,7],str:[39,7,11,6,5]}},
+ {lo:60,n:25,st:{dep:[14.52,14.71994112],anx:[9,9.746794345],str:[14.44,10.89755324]},lv:{dep:[14,2,2,1,6],anx:[15,1,3,1,5],str:[14,4,3,2,2]}},
+ {lo:70,n:3,st:{dep:[25.66666667,17.89785834],anx:[8.666666667,10.69267662],str:[21,15.62049935]},lv:{dep:[1,0,0,0,2],anx:[2,0,0,0,1],str:[1,0,0,2,0]}}
+];
+const T=[0,12.706,4.303,3.182,2.776,2.571,2.447,2.365,2.306,2.262,2.228,2.201,2.179,2.160,2.145,2.131,2.120,2.110,2.101,2.093,2.086,2.080,2.074,2.069,2.064,2.060,2.056,2.052,2.048,2.045,2.042];
+const tc=df=>df<=30?T[df]:1.96+2.4/df;
+const ci=(g,k)=>{const [m,sd]=g.st[k],h=tc(g.n-1)*sd/Math.sqrt(g.n);return [m-h,m+h]};
+const lab=g=>`${g.lo}–${g.lo+9}`;
+const f2=v=>v.toFixed(2);
+const N=D.reduce((a,g)=>a+g.n,0);
+
+let chart='mean',sel=new Set(['dep','anx','str']),one='dep';
+const $=id=>document.getElementById(id);
+const tip=$('tip');
+
+function marker(shape,x,y,c){
+  const st='style="stroke:var(--card)" stroke-width="1.5"';
+  if(shape==='c')return `<circle cx="${x}" cy="${y}" r="5" fill="${c}" ${st}/>`;
+  if(shape==='s')return `<rect x="${x-4.5}" y="${y-4.5}" width="9" height="9" fill="${c}" ${st}/>`;
+  return `<polygon points="${x},${y-6} ${x+6},${y+4.5} ${x-6},${y+4.5}" fill="${c}" ${st}/>`;
+}
+
+function renderMean(){
+  const W=900,H=440,m={l:56,r:24,t:20,b:76},pw=W-m.l-m.r,ph=H-m.t-m.b;
+  const x=i=>m.l+pw*(i+.5)/D.length;
+  const y=v=>m.t+ph*(1-Math.min(42,Math.max(0,v))/42);
+  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="各年齡組分量表平均數折線圖">`;
+  for(let v=0;v<=42;v+=6)s+=`<line x1="${m.l}" x2="${W-m.r}" y1="${y(v)}" y2="${y(v)}" class="grid"/><text class="ax" x="${m.l-8}" y="${y(v)+4}" text-anchor="end">${v}</text>`;
+  s+=`<text class="ax" transform="rotate(-90)" x="${-(m.t+ph/2)}" y="16" text-anchor="middle">分量表總分（0–42）</text>`;
+  D.forEach((g,i)=>{s+=`<text x="${x(i)}" y="${H-m.b+22}" text-anchor="middle" font-size="13">${lab(g)}</text><text x="${x(i)}" y="${H-m.b+40}" text-anchor="middle" font-size="12" class="ax">（n=${g.n}）</text>`});
+  s+=`<text class="ax" x="${m.l+pw/2}" y="${H-8}" text-anchor="middle">年齡組（歲）</text>`;
+  const act=SUBS.filter(b=>sel.has(b.k));
+  act.forEach((b,j)=>{
+    const off=(j-(act.length-1)/2)*9;
+    const pts=D.map((g,i)=>`${x(i)+off},${y(g.st[b.k][0])}`).join(' ');
+    s+=`<polyline points="${pts}" fill="none" stroke="${b.color}" stroke-width="2" opacity=".85"/>`;
+    D.forEach((g,i)=>{
+      const cx=x(i)+off,[lo,hi]=ci(g,b.k),mv=g.st[b.k][0];
+      s+=`<line x1="${cx}" x2="${cx}" y1="${y(hi)}" y2="${y(lo)}" stroke="${b.color}" stroke-width="1.5"/>`;
+      if(hi<=42)s+=`<line x1="${cx-5}" x2="${cx+5}" y1="${y(hi)}" y2="${y(hi)}" stroke="${b.color}" stroke-width="1.5"/>`;
+      if(lo>=0)s+=`<line x1="${cx-5}" x2="${cx+5}" y1="${y(lo)}" y2="${y(lo)}" stroke="${b.color}" stroke-width="1.5"/>`;
+      s+=marker(b.shape,cx,y(mv),b.color);
+      s+=`<circle class="hit" data-a="${i},${b.k}" cx="${cx}" cy="${y(mv)}" r="13" fill="transparent" tabindex="0"/>`;
+    });
+  });
+  s+='</svg>';
+  const lg=act.map(b=>`<span class="chip" style="cursor:default"><svg viewBox="-8 -8 16 16" width="16" height="16" style="display:inline">${marker(b.shape,0,0,b.color)}</svg>${b.name}</span>`).join('');
+  $('chart').innerHTML=`<div style="margin-bottom:6px">${lg}<span class="hint">誤差線為 95% 信賴區間</span></div>`+s;
+}
+
+function renderSev(){
+  const b=SUBS.find(q=>q.k===one);
+  const W=900,rowH=52,m={l:150,r:24,t:56,b:44},H=m.t+rowH*D.length+m.b,pw=W-m.l-m.r;
+  const x=p=>m.l+pw*p/100;
+  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${b.name}嚴重度分布堆疊長條圖">`;
+  LV.forEach((l,i)=>{const lx=m.l+i*140;s+=`<rect x="${lx}" y="12" width="13" height="13" fill="${LVC[i]}" stroke="#aab4c6" stroke-width=".5"/><text x="${lx+19}" y="23" font-size="12.5">${l} ${b.cuts[i]}</text>`});
+  for(let p=0;p<=100;p+=20)s+=`<line x1="${x(p)}" x2="${x(p)}" y1="${m.t-6}" y2="${H-m.b+4}" class="grid"/><text class="ax" x="${x(p)}" y="${H-m.b+20}" text-anchor="middle">${p}%</text>`;
+  D.forEach((g,i)=>{
+    const yy=m.t+i*rowH+7,hh=rowH-14;
+    s+=`<text x="${m.l-10}" y="${yy+hh/2+5}" text-anchor="end" font-size="13">${lab(g)}（n=${g.n}）</text>`;
+    let acc=0;
+    g.lv[b.k].forEach((c,li)=>{
+      const p=c/g.n*100;
+      if(c>0){
+        s+=`<rect class="hit" data-b="${i},${li}" x="${x(acc)}" y="${yy}" width="${x(acc+p)-x(acc)}" height="${hh}" fill="${LVC[li]}" style="stroke:var(--card)" stroke-width="1" tabindex="0"/>`;
+        if(x(acc+p)-x(acc)>=42)s+=`<text x="${(x(acc)+x(acc+p))/2}" y="${yy+hh/2+4}" text-anchor="middle" font-size="11.5" style="fill:${li>=3?'#fff':'#1c2433'};pointer-events:none">${p.toFixed(1)}%</text>`;
+      }
+      acc+=p;
+    });
+  });
+  s+=`<text class="ax" x="${m.l+pw/2}" y="${H-6}" text-anchor="middle">占該年齡層人數的百分比</text></svg>`;
+  $('chart').innerHTML=s;
+}
+
+let sort={key:null,dir:1};
+const GB='style="border-left:1px solid var(--gb)"';
+const thS=(key,label,extra='',title='')=>{
+  const on=sort.key===key;
+  return `<th ${extra} aria-sort="${on?(sort.dir>0?'ascending':'descending'):'none'}"><button type="button" class="sb" data-s="${key}"${title?` title="${title}"`:''}>${label}<span class="ar">${on?(sort.dir>0?'▲':'▼'):'⇅'}</span></button></th>`;
+};
+const sval=(g,key)=>{
+  if(key==='lo')return g.lo;
+  if(key==='n')return g.n;
+  const [t,a,b]=key.split(':');
+  if(t==='m')return g.st[a][0];
+  if(t==='s')return g.st[a][1];
+  if(t==='c')return ci(g,a)[0];
+  return g.lv[a][+b]/g.n;
+};
+function sortedRows(){
+  const r=D.slice();
+  if(sort.key)r.sort((a,b)=>(sval(a,sort.key)-sval(b,sort.key))*sort.dir||a.lo-b.lo);
+  return r;
+}
+function renderTable(){
+  const cap=`<caption>樣本共 N=${N}。點選欄位標題可排序（再點反向，第三次恢復原順序）</caption>`;
+  const grp=SUBS.map(b=>`<th colspan="${chart==='mean'?3:5}" style="text-align:center;border-bottom:3px solid ${b.color};border-left:1px solid var(--gb)">${b.name}</th>`).join('');
+  let h;
+  if(chart==='mean'){
+    h=`<table>${cap}<thead><tr>${thS('lo','年齡組','rowspan="2"')}${thS('n','人數','rowspan="2"')}${grp}</tr><tr>${SUBS.map(b=>thS('m:'+b.k,'平均',GB)+thS('s:'+b.k,'標準差')+thS('c:'+b.k,'95%信賴區間','','依區間下限排序')).join('')}</tr></thead><tbody>`;
+    sortedRows().forEach(g=>{h+=`<tr><td>${lab(g)}</td><td>${g.n}</td>`+SUBS.map(b=>{const [lo,hi]=ci(g,b.k);return `<td ${GB}>${f2(g.st[b.k][0])}</td><td>${f2(g.st[b.k][1])}</td><td>${f2(lo)} – ${f2(hi)}</td>`}).join('')+'</tr>'});
+    h+='</tbody></table>';
+  }else{
+    h=`<table>${cap}<thead><tr>${thS('lo','年齡組','rowspan="2"')}${thS('n','人數','rowspan="2"')}${grp}</tr><tr>${SUBS.map(b=>LV.map((l,i)=>thS(`p:${b.k}:${i}`,`${l}<small>${b.cuts[i]}</small>`,i?'':GB,'依占該年齡層的百分比排序')).join('')).join('')}</tr></thead><tbody>`;
+    sortedRows().forEach(g=>{h+=`<tr><td>${lab(g)}</td><td>${g.n}</td>`+SUBS.map(b=>g.lv[b.k].map((c,i)=>`<td ${i?'':GB}>${c}<small>${(c/g.n*100).toFixed(1)}%</small></td>`).join('')).join('')+'</tr>'});
+    h+=`</tbody><tfoot><tr><td>合計</td><td>${N}</td>${SUBS.map(b=>LV.map((l,i)=>{const c=D.reduce((a,g)=>a+g.lv[b.k][i],0);return `<td ${i?'':GB}>${c}<small>${(c/N*100).toFixed(1)}%</small></td>`}).join('')).join('')}</tr></tfoot></table>`;
+  }
+  $('table').innerHTML=h;
+}
+
+function renderSubs(){
+  $('hint').textContent=chart==='mean'?'可複選，至少保留一個':'一次選一個';
+  $('subs').innerHTML=SUBS.map(b=>`<button type="button" class="tb" data-k="${b.k}" style="--c:${b.color}" aria-pressed="${chart==='mean'?sel.has(b.k):one===b.k}">${b.name}</button>`).join('');
+}
+
+function update(){
+  document.querySelectorAll('#seg button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.c===chart));
+  const nm=SUBS.find(b=>b.k===one).name;
+  $('ctitle').textContent=chart==='mean'?'各年齡組的分量表平均數':`各年齡層的${nm}嚴重度分布`;
+  renderSubs();
+  chart==='mean'?renderMean():renderSev();
+  renderTable();
+}
+
+$('seg').addEventListener('click',e=>{
+  const c=e.target.dataset.c;if(!c||c===chart)return;
+  if(c==='sev')one=SUBS.find(b=>sel.has(b.k)).k;
+  sort={key:null,dir:1};chart=c;update();
+});
+$('subs').addEventListener('click',e=>{
+  const bt=e.target.closest('.tb');if(!bt)return;
+  const k=bt.dataset.k;
+  if(chart==='mean'){
+    if(sel.has(k)){if(sel.size>1)sel.delete(k);else return}
+    else sel.add(k);
+  }else one=k;
+  update();
+  $('subs').querySelector('[data-k="'+k+'"]').focus();
+});
+$('table').addEventListener('click',e=>{
+  const b=e.target.closest('.sb');if(!b)return;
+  const k=b.dataset.s;
+  if(sort.key!==k)sort={key:k,dir:1};
+  else if(sort.dir===1)sort.dir=-1;
+  else sort={key:null,dir:1};
+  renderTable();
+  const nb=$('table').querySelector('.sb[data-s="'+k+'"]');if(nb)nb.focus();
+});
+
+const PAL={light:{dep:'#2b6cb0',anx:'#c2570c',str:'#1f7a6f'},dark:{dep:'#6aa6e8',anx:'#f2994a',str:'#4cc2b1'}};
+let theme='';
+try{theme=localStorage.getItem('dass-theme')||''}catch(e){}
+if(theme!=='light'&&theme!=='dark')theme=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';
+function applyTheme(t,re){
+  theme=t;
+  document.documentElement.dataset.theme=t;
+  SUBS.forEach(b=>b.color=PAL[t][b.k]);
+  $('themeBtn').setAttribute('aria-pressed',t==='dark');
+  if(re)update();
+}
+$('themeBtn').addEventListener('click',()=>{
+  const t=theme==='dark'?'light':'dark';
+  try{localStorage.setItem('dass-theme',t)}catch(e){}
+  applyTheme(t,true);
+});
+applyTheme(theme,false);
+
+function showTip(html,x,y){
+  tip.innerHTML=html;tip.style.display='block';
+  const w=tip.offsetWidth,h=tip.offsetHeight;
+  tip.style.left=Math.min(x+14,innerWidth-w-8)+'px';
+  tip.style.top=(y-h-12<4?y+16:y-h-12)+'px';
+}
+function tipHtml(el){
+  if(el.dataset.a){
+    const [i,k]=el.dataset.a.split(','),g=D[+i],b=SUBS.find(q=>q.k===k);
+    return `<b>${b.name}・${lab(g)} 歲</b><br>平均數 ${f2(g.st[k][0])}<br>標準差 ${f2(g.st[k][1])}`;
+  }
+  if(el.dataset.b){
+    const [i,li]=el.dataset.b.split(',').map(Number),g=D[i],b=SUBS.find(q=>q.k===one),c=g.lv[b.k][li];
+    return `<b>${b.name}・${lab(g)} 歲</b><br>${LV[li]}：${(c/g.n*100).toFixed(1)}%（${c} 人）`;
+  }
+  return null;
+}
+const ch=$('chart');
+ch.addEventListener('mousemove',e=>{const el=e.target.closest('.hit');if(!el){tip.style.display='none';return}showTip(tipHtml(el),e.clientX,e.clientY)});
+ch.addEventListener('mouseleave',()=>tip.style.display='none');
+ch.addEventListener('focusin',e=>{const el=e.target.closest('.hit');if(!el)return;const r=el.getBoundingClientRect();showTip(tipHtml(el),r.left+r.width/2,r.top)});
+ch.addEventListener('focusout',()=>tip.style.display='none');
+
+update();
+</script>
+</body>
+</html>

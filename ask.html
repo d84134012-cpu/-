@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>問答｜年齡與憂鬱、焦慮、壓力的關係</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="site">
+  <div class="site-in">
+    <a class="brand" href="index.html">DASS 研究專題</a>
+    <nav aria-label="主要導覽"><a href="index.html">首頁</a><a href="results.html">研究結果</a><a href="ask.html" aria-current="page">問答</a><a href="about.html">關於研究</a></nav>
+    <button type="button" id="themeBtn" aria-pressed="false">夜間模式</button>
+  </div>
+</header>
+<main>
+<h1>問答</h1>
+<section class="card soon">
+  <div class="big">即將推出</div>
+  <p>此頁面尚在準備中，敬請期待。</p>
+</section>
+</main>
+<footer class="site-foot">
+  <div class="site-in">
+    <span>組別：第 ＿ 組</span>
+    <span>組員：（請填入組員姓名）</span>
+  </div>
+</footer>
+<script>
+(function(){
+  var t='';try{t=localStorage.getItem('dass-theme')||''}catch(e){}
+  if(t!=='light'&&t!=='dark')t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';
+  var b=document.getElementById('themeBtn');
+  function ap(x){t=x;document.documentElement.dataset.theme=x;b.setAttribute('aria-pressed',x==='dark')}
+  b.addEventListener('click',function(){var x=t==='dark'?'light':'dark';try{localStorage.setItem('dass-theme',x)}catch(e){}ap(x)});
+  ap(t);
+})();
+</script>
+</body>
+</html>

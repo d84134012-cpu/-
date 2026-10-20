@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>關於研究｜年齡與憂鬱、焦慮、壓力的關係</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="site">
+  <div class="site-in">
+    <a class="brand" href="index.html">DASS 研究專題</a>
+    <nav aria-label="主要導覽"><a href="index.html">首頁</a><a href="results.html">研究結果</a><a href="ask.html">問答</a><a href="about.html" aria-current="page">關於研究</a></nav>
+    <button type="button" id="themeBtn" aria-pressed="false">夜間模式</button>
+  </div>
+</header>
+<main>
+<h1>關於研究</h1>
+<p class="lead">資料來源、分析方法與解讀時需要留意的限制。</p>
+
+<section class="card prose">
+  <h2>資料來源</h2>
+  <p>資料來自線上版 DASS（憂鬱焦慮壓力量表，Depression Anxiety Stress Scales），於 2017–2019 年蒐集。問卷對所有人開放，填答者多半是為了取得個人化的測驗結果而作答；完成測驗後，可選擇再填一份研究問卷。本資料只包含填了研究問卷、並在最後回答「填答是否準確、是否同意用於研究」為「是」的人。</p>
+  <p>量表共 42 題，憂鬱、焦慮、壓力各 14 題。填答者回想「過去一週」各項描述符合自己的頻率，從「完全不符合」到「非常符合或大部分時間符合」共四個選項。</p>
+</section>
+
+<section class="card prose">
+  <h2>研究方法</h2>
+  <ol>
+    <li><b>資料清洗</b>：原始資料 5000 筆，排除下列情況後剩 4175 筆。
+      <ul>
+        <li>自編詞彙檢核題中，三個不存在的詞（VCL6、VCL9、VCL12）任一被勾選。</li>
+        <li>年齡小於 7 歲、大於 90 歲或空白。</li>
+        <li>母親生育子女數（familysize）為 0、大於 20 或空白。</li>
+      </ul>
+    </li>
+    <li><b>量表計分</b>：每題的四個選項（1–4）減 1，換算為 0–3 分，再依 DASS-42 標準的分量表歸屬，將各分量表 14 題加總，得 0–42 分，分數越高症狀越嚴重。</li>
+    <li><b>嚴重度分級</b>：依分量表總分切點分為五級。</li>
+  </ol>
+  <div class="tbl">
+    <table>
+      <caption>嚴重度切點（分量表總分）</caption>
+      <thead><tr><th>等級</th><th>憂鬱</th><th>焦慮</th><th>壓力</th></tr></thead>
+      <tbody>
+        <tr><td>正常</td><td>0–9</td><td>0–7</td><td>0–14</td></tr>
+        <tr><td>輕度</td><td>10–13</td><td>8–9</td><td>15–18</td></tr>
+        <tr><td>中度</td><td>14–20</td><td>10–14</td><td>19–25</td></tr>
+        <tr><td>重度</td><td>21–27</td><td>15–19</td><td>26–33</td></tr>
+        <tr><td>極重度</td><td>28 以上</td><td>20 以上</td><td>34 以上</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <ol start="4">
+    <li><b>分組與統計</b>：依年齡每 10 歲一組，計算各組人數、各分量表的平均數與樣本標準差；統計以 Google Sheets 公式完成。網頁中的 95% 信賴區間以 t 分布計算（平均數 ± t × 標準差 ÷ √人數）。</li>
+  </ol>
+</section>
+
+<section class="card prose">
+  <h2>樣本限制</h2>
+  <ul>
+    <li>填答者為自願參與的網路使用者，並非隨機抽樣，結果不能推論到一般人口。</li>
+    <li>只納入同意用於研究且自述答案準確的人，可能和所有測驗者不同。</li>
+    <li>樣本集中在 10–29 歲，60–69 歲（25 人）與 70–79 歲（3 人）人數很少，估計不穩定。</li>
+    <li>資料為單一時間點，只能比較不同年齡層，不能說明個人隨年齡的變化或因果關係。</li>
+    <li>分數是症狀的自評篩檢指標，不等同臨床診斷。</li>
+  </ul>
+</section>
+</main>
+<footer class="site-foot">
+  <div class="site-in">
+    <span>組別：第 ＿ 組</span>
+    <span>組員：（請填入組員姓名）</span>
+  </div>
+</footer>
+<script>
+(function(){
+  var t='';try{t=localStorage.getItem('dass-theme')||''}catch(e){}
+  if(t!=='light'&&t!=='dark')t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';
+  var b=document.getElementById('themeBtn');
+  function ap(x){t=x;document.documentElement.dataset.theme=x;b.setAttribute('aria-pressed',x==='dark')}
+  b.addEventListener('click',function(){var x=t==='dark'?'light':'dark';try{localStorage.setItem('dass-theme',x)}catch(e){}ap(x)});
+  ap(t);
+})();
+</script>
+</body>
+</html>
